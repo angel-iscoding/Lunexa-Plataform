@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { AddProductDialog } from "@/components/add-product-dialog"
 
 // Datos simulados para la tabla de productos
-const productos = [
+const initialProductos = [
   {
     id: "PRD-001",
     nombre: "Análisis de Datos Avanzado",
@@ -17,6 +18,7 @@ const productos = [
     precio: "€299.99",
     stock: 15,
     estado: "Activo",
+    imagen: null,
   },
   {
     id: "PRD-002",
@@ -25,6 +27,7 @@ const productos = [
     precio: "€149.99",
     stock: 28,
     estado: "Activo",
+    imagen: null,
   },
   {
     id: "PRD-003",
@@ -33,6 +36,7 @@ const productos = [
     precio: "€199.99",
     stock: 10,
     estado: "Activo",
+    imagen: null,
   },
   {
     id: "PRD-004",
@@ -41,6 +45,7 @@ const productos = [
     precio: "€249.99",
     stock: 5,
     estado: "Bajo stock",
+    imagen: null,
   },
   {
     id: "PRD-005",
@@ -49,6 +54,7 @@ const productos = [
     precio: "€399.99",
     stock: 0,
     estado: "Agotado",
+    imagen: null,
   },
   {
     id: "PRD-006",
@@ -57,6 +63,7 @@ const productos = [
     precio: "€349.99",
     stock: 12,
     estado: "Activo",
+    imagen: null,
   },
 ]
 
@@ -83,6 +90,10 @@ const ventasPorProducto = [
 
 export default function ProductosPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [productos, setProductos] = useState(initialProductos)
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [currentEditProduct, setCurrentEditProduct] = useState<any>(null)
 
   // Filtrar productos basados en el término de búsqueda
   const filteredProducts = productos.filter(
@@ -106,11 +117,68 @@ export default function ProductosPage() {
     }
   }
 
+  // Función para determinar el estado basado en el stock
+  const getEstadoFromStock = (stock: number): string => {
+    if (stock <= 0) return "Agotado"
+    if (stock <= 5) return "Bajo stock"
+    return "Activo"
+  }
+
+  // Función para añadir un nuevo producto
+  const handleAddProduct = (product: any) => {
+    const newProduct = {
+      id: `PRD-${String(productos.length + 1).padStart(3, "0")}`,
+      nombre: product.nombre,
+      categoria: product.categoria,
+      precio: `€${product.precio}`,
+      stock: Number.parseInt(product.stock),
+      estado: getEstadoFromStock(Number.parseInt(product.stock)),
+      imagen: product.imagen ? URL.createObjectURL(product.imagen) : null,
+    }
+
+    setProductos([...productos, newProduct])
+  }
+
+  // Función para editar un producto existente
+  const handleEditProduct = (id: string, product: any) => {
+    const updatedProductos = productos.map((producto) => {
+      if (producto.id === id) {
+        const stock = Number.parseInt(product.stock)
+        return {
+          ...producto,
+          nombre: product.nombre,
+          categoria: product.categoria,
+          precio: `€${product.precio}`,
+          stock: stock,
+          estado: getEstadoFromStock(stock),
+          imagen: product.imagen instanceof File ? URL.createObjectURL(product.imagen) : producto.imagen,
+        }
+      }
+      return producto
+    })
+
+    setProductos(updatedProductos)
+  }
+
+  // Función para abrir el modal de edición
+  const openEditModal = (producto: any) => {
+    setCurrentEditProduct(producto)
+    setIsEditing(true)
+    setIsAddProductOpen(true)
+  }
+
+  // Función para abrir el modal de añadir producto
+  const openAddModal = () => {
+    setCurrentEditProduct(null)
+    setIsEditing(false)
+    setIsAddProductOpen(true)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white md:text-3xl">Productos</h1>
-        <Button className="bg-lunexa-blue hover:bg-lunexa-blue/90">
+        <Button className="bg-lunexa-blue hover:bg-lunexa-blue/90" onClick={openAddModal}>
           <Plus className="mr-2 h-4 w-4" />
           Añadir Producto
         </Button>
@@ -162,7 +230,11 @@ export default function ProductosPage() {
                       <Badge className={getEstadoClass(producto.estado)}>{producto.estado}</Badge>
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <Button variant="link" className="text-lunexa-blue hover:text-lunexa-blue/80 p-0 h-auto">
+                      <Button
+                        variant="link"
+                        className="text-lunexa-blue hover:text-lunexa-blue/80 p-0 h-auto"
+                        onClick={() => openEditModal(producto)}
+                      >
                         Editar
                       </Button>
                     </td>
@@ -231,6 +303,16 @@ export default function ProductosPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal para añadir/editar producto */}
+      <AddProductDialog
+        open={isAddProductOpen}
+        onOpenChange={setIsAddProductOpen}
+        onAddProduct={handleAddProduct}
+        onEditProduct={handleEditProduct}
+        editProduct={currentEditProduct}
+        isEditing={isEditing}
+      />
     </div>
   )
 }

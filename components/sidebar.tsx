@@ -18,6 +18,7 @@ interface SidebarItem {
   href: string
 }
 
+// Actualizar el array sidebarItems para cambiar "Productos" a "Inventario"
 const sidebarItems: SidebarItem[] = [
   {
     title: "Análisis",
@@ -25,7 +26,7 @@ const sidebarItems: SidebarItem[] = [
     href: "/dashboard",
   },
   {
-    title: "Productos",
+    title: "Inventario",
     icon: Package,
     href: "/dashboard/productos",
   },
@@ -61,6 +62,16 @@ export function Sidebar() {
     router.push("/login")
   }
 
+  // Función para determinar si un elemento está activo
+  const isItemActive = (href: string): boolean => {
+    // Para la ruta principal del dashboard, solo debe estar activa cuando es exactamente esa ruta
+    if (href === "/dashboard") {
+      return pathname === "/dashboard"
+    }
+    // Para otras rutas, verificar si el pathname comienza con la ruta del elemento
+    return pathname.startsWith(href)
+  }
+
   return (
     <>
       {isMobile && (
@@ -87,7 +98,7 @@ export function Sidebar() {
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           {sidebarItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+            const isActive = isItemActive(item.href)
             return (
               <Link
                 key={item.href}
