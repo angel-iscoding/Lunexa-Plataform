@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Make port configurable through environment variable
+  server: {
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+  },
 }
 
 export default nextConfig

@@ -41,15 +41,23 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      // Simulación de autenticación
-      // En un caso real, aquí se haría la petición al backend
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch('http://localhost:4040/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },  
+        body: JSON.stringify(data),
+      });
 
-      // Simulamos credenciales válidas (cualquier correo válido y contraseña de 6+ caracteres)
-      localStorage.setItem("user", JSON.stringify({ email: data.email }))
-      router.push("/dashboard")
+      if (!response.ok) {
+        throw new Error('Credenciales inválidas');
+      }
+
+      const result = await response.json();
+      localStorage.setItem("user", JSON.stringify(result));
+      router.push("/dashboard");
     } catch (err) {
-      setError("Credenciales inválidas. Por favor, intenta de nuevo.")
+      setError("Credenciales inválidas. Por favor, intenta de nuevo.");
     }
   }
 

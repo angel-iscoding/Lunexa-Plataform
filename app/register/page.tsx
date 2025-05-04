@@ -52,20 +52,34 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      // Simulación de registro
-      // En un caso real, aquí se haría la petición al backend
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setSuccess("Cuenta creada exitosamente. Redirigiendo al inicio de sesión...")
-
+      const response = await fetch('http://localhost:4040/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          confirmPassword: data.confirmPassword, // Agregar confirmPassword
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json(); // Obtener el mensaje de error del servidor
+        throw new Error(errorData.error || 'Error al crear la cuenta');
+      }
+  
+      setSuccess("Cuenta creada exitosamente. Redirigiendo al inicio de sesión...");
+  
       // Redirigir después de 2 segundos
       setTimeout(() => {
-        router.push("/login")
-      }, 2000)
-    } catch (err) {
-      setError("Error al crear la cuenta. Por favor, intenta de nuevo.")
+        router.push("/login");
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || "Error al crear la cuenta. Por favor, intenta de nuevo.");
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-lunexa-darker to-lunexa-dark p-4">
